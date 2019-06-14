@@ -1,0 +1,1 @@
+start "0" cmd /c "cd cordapp-template-kotlin\build\nodes & runnodes"
