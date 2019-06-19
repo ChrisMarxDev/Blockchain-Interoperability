@@ -229,6 +229,7 @@ class VisualizationMain : ViewerListener {
         val toInt = id.toInt()
 
         if (BLOCKCHAIN_A_TX_BROADCAST_PORTS.contains(toInt) && messageQueue.isEmpty()) {
+
             transactionBroadcaster.broadcastTransaction(toInt)
         }
     }

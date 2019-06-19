@@ -1,6 +1,6 @@
 {
-  "genesis_time": "2018-12-14T10:09:47.6425978Z",
-  "chain_id": "chain-3reFmL",
+  "genesis_time": "2019-06-14T06:00:13.6515043Z",
+  "chain_id": "chain-boelci",
   "validators": [
     {
       "address": "EC5C293607644C27C58E6D1F4E1298FFFE64EB1E",
@@ -28,6 +28,15 @@
       },
       "power": "1",
       "name": "node2"
+    },
+    {
+      "address": "9966177E39B7B34A34694287B1158EEE1562FB32",
+      "pub_key": {
+        "type": "tendermint/PubKeyEd25519",
+        "value": "rbm8r2PVHdXAdC0DAc856ej5X9yEdDmOPcgIJ6Geh5U="
+      },
+      "power": "1",
+      "name": "node3"
     }
   ],
   "app_hash": ""

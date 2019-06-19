@@ -3,15 +3,12 @@ package BlockchainA
 import com.google.protobuf.ByteString
 import extensions.toThriftobject
 import generated.application.thrift.Contract
-import kotlinx.coroutines.async
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 
 class BlockchainValidation(port: Int) {
-    val priceRequest: PriceRequest
-
-    init {
-        priceRequest = PriceRequest(port = port)
-    }
+    private val priceRequest: PriceRequest = PriceRequest(port = port)
 
     fun isValid(byteString: ByteString?): Boolean {
 
@@ -24,12 +21,14 @@ class BlockchainValidation(port: Int) {
         return runBlocking {
 
             val offeredGoodsPrices = contract.offeredGoods.map {
-                val price = async { getGoodsPrice(it.key) }.await() ?: return@runBlocking false
+                val price = withContext(Dispatchers.Default) { getGoodsPrice(it.key) }
+                        ?: return@runBlocking false
                 price * it.value
             }
 
             val receivedGoodsPrices = contract.receivedGoods.map {
-                val price = async { getGoodsPrice(it.key) }.await() ?: return@runBlocking false
+                val price = withContext(Dispatchers.Default) { getGoodsPrice(it.key) }
+                        ?: return@runBlocking false
                 price * it.value
             }
 

@@ -32,6 +32,14 @@ class Config3 {
         }
     }
 }
+class Config4 {
+    companion object {
+        @JvmStatic
+        fun main(args: Array<String>) {
+            startInteroperabilityApplication(3)
+        }
+    }
+}
 
 fun startInteroperabilityApplication(nr: Int) {
     InteroperabilityApplication.main(arrayOf(INTEROPERABILITY_ABCI_PORTS[nr].toString(), INTEROPERABILITY_BROADCAST_TRANSACTIONS_PORTS[nr].toString(), INTEROP_DATA_SERVER_PORTS[nr].toString(), BLOCKCHAIN_B_SERVER_PORTS[nr].toString()))

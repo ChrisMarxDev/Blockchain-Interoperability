@@ -8,12 +8,10 @@ import extensions.asByteBuffer
 import extensions.asString
 import extensions.hash
 import general.Logger
-import generated.interoperability.thrift.DataInterface
 import generated.interoperability.thrift.DataRequest
 import generated.interoperability.thrift.OracleDataInterface
 import org.apache.thrift.protocol.TBinaryProtocol
 import org.apache.thrift.transport.TSocket
-import kotlin.system.measureTimeMillis
 
 class PriceRequest(val adress: String = "localhost", val port: Int = 8080) {
 
@@ -29,11 +27,12 @@ class PriceRequest(val adress: String = "localhost", val port: Int = 8080) {
 
             val stringMessage = goodsId
 
-            val timeStart = System.currentTimeMillis()
 
             println("request $goodsId on $port")
 
             Logger.message(BlockchainInterfaceA.identifier, BLOCKCHAIN_A_ID, "$port", BLOCKCHAIN_ORACLE, goodsId)
+
+            val timeStart = System.currentTimeMillis()
 
             val request = DataRequest(BLOCKCHAIN_A_ID, BLOCKCHAIN_B_ID, stringMessage)
 
@@ -47,6 +46,10 @@ class PriceRequest(val adress: String = "localhost", val port: Int = 8080) {
 
             Logger.message("$port", BLOCKCHAIN_ORACLE, BlockchainInterfaceA.identifier, BLOCKCHAIN_A_ID, "$price")
             println("requested price for $goodsId was " + (price ?: "null") + " in $timeMillis ms")
+            TimeTracker.addTime(goodsId, timeMillis)
+
+            TimeTracker.printResult()
+
 
             return price
 

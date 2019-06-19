@@ -1,10 +1,15 @@
 package BlockchainA
 
 import BLOCKCHAIN_A_TX_BROADCAST_PORTS
+import DUMMY_AMOUNT
 import com.mashape.unirest.http.HttpResponse
 import com.mashape.unirest.http.Unirest
 import extensions.toHexByteString
 import generated.application.thrift.Contract
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import java.util.concurrent.TimeUnit
 import kotlin.random.Random
 
@@ -14,9 +19,22 @@ class MockContractTransactionBroadcasts {
         @JvmStatic
         fun main(args: Array<String>) {
             val mock = MockContractTransactionBroadcasts()
-            while (true) {
-                mock.broadcastTransaction(mock.randomPort())
-                TimeUnit.SECONDS.sleep(10)
+            Unirest.setTimeouts(500, 500)
+
+            runBlocking {
+                repeat(500) {
+                    delay(100L)
+
+                    // launch a lot of coroutines
+                    async {
+                        try {
+                            mock.broadcastTransaction(BLOCKCHAIN_A_TX_BROADCAST_PORTS[0])
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+                    }
+                }
+                println("DONE ALL MESSAGES SENT")
             }
         }
     }
@@ -31,9 +49,10 @@ class MockContractTransactionBroadcasts {
         return BLOCKCHAIN_A_TX_BROADCAST_PORTS.random()
     }
 
+
     fun broadcastTransaction(sendToPort: Int): HttpResponse<String>? {
-        val rand1 = Random.nextInt(100).toString()
-        val rand2 = Random.nextInt(100).toString()
+        val rand1 = Random.nextInt(DUMMY_AMOUNT).toString()
+        val rand2 = Random.nextInt(DUMMY_AMOUNT).toString()
         val item = "item"
 
 
@@ -56,4 +75,5 @@ class MockContractTransactionBroadcasts {
         println(response.body)
         return response
     }
+
 }

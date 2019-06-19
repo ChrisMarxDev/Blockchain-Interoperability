@@ -28,6 +28,8 @@ class CordaRpcConnector(nodeAddress: NetworkHostAndPort,
 
     fun startPriceTransaction(itemid: String, price: Int) {
         proxy.startFlowDynamic(PriceFlow::class.java, price, itemid)
+        StateSnapshot.add(itemid,price)
+
     }
 
     fun registerForPriceStateUpdate(consumer: (PriceState) -> Unit) {

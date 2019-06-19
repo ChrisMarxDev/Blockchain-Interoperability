@@ -1,5 +1,6 @@
 package com.template
 
+import DUMMY_AMOUNT
 import net.corda.core.utilities.NetworkHostAndPort
 import kotlin.concurrent.thread
 
@@ -18,14 +19,13 @@ class CordaConnector(nodeAddress: NetworkHostAndPort,
         println("Register Listener for PriceState")
         client.registerForPriceStateUpdate {
             StateSnapshot.add(it)
-            println("${it.itemId} with price ${it.price}")
         }
         thread {
             CommunicationServer(communicationsPort)
         }
 
         if (sendDummyData) {
-            for (i in 0..100) {
+            for (i in 0..DUMMY_AMOUNT) {
                 println("Creating Sample Data: item$i")
                 client.startPriceTransaction("item$i", 10)
             }
