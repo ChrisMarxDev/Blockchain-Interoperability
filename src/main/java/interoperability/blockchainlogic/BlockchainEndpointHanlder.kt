@@ -14,6 +14,11 @@ class BlockchainEndpointHanlder(val broadcastingPort: Int = InternalAdressHandle
     //    curl localhost:46657/broadcast_tx_commit?tx=0x00
     val blockchaiNodeAdress = "http://localhost:${broadcastingPort}"
 
+    init {
+        Unirest.setTimeouts( 10000,  10000)
+
+    }
+
     fun broadcastTransaction(transaction: InteroperabilityTransaction): HttpResponse<String>? {
 
         val wrapperTx = WrapperTransaction(MessageType.INTEROPERABILITY_TRANSACTION)
@@ -63,6 +68,19 @@ class BlockchainEndpointHanlder(val broadcastingPort: Int = InternalAdressHandle
 
         val response = Unirest.post("$blockchaiNodeAdress/tx")
                 .field("hash ", "\"0x$hash\"")
+                .asString()
+        return response
+    }
+
+    fun getBlockAt(height: Int): HttpResponse<String>? {
+        val response = Unirest.post("$blockchaiNodeAdress/block")
+                .field("height ", height)
+                .asString()
+        return response
+    }
+
+    fun getLatestBlock():  HttpResponse<String>? {
+        val response = Unirest.post("$blockchaiNodeAdress/block")
                 .asString()
         return response
     }

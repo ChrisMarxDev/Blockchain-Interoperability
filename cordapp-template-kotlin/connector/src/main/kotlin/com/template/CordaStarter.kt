@@ -30,14 +30,14 @@ object CordaStarterConfig2 {
 object CordaStarterConfig3WithDummyData {
     @JvmStatic
     fun main(args: Array<String>) {
-        startCordaConnector(2, true)
+        startCordaConnector(2, true, true)
     }
 
 }
 
-fun startCordaConnector(nr: Int, dummyData: Boolean = false) {
+fun startCordaConnector(nr: Int, dummyData: Boolean = false, byzantine: Boolean = false) {
     val rpcPort = RPC_PORTS[nr]
     val nodeAddress = NetworkHostAndPort.parse("$hostAdress$rpcPort")
 
-    CordaConnector(nodeAddress, username, password, COMMUNICATIONS_SERVER_PORTS[nr], dummyData)
+    CordaConnector(nodeAddress, username, password, COMMUNICATIONS_SERVER_PORTS[nr], dummyData,byzantine)
 }

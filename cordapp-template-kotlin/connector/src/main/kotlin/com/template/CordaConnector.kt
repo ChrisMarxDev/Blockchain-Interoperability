@@ -8,7 +8,8 @@ class CordaConnector(nodeAddress: NetworkHostAndPort,
                      username: String,
                      password: String,
                      communicationsPort: Int,
-                     sendDummyData: Boolean = false) {
+                     sendDummyData: Boolean = false,
+                     byzantine: Boolean = false) {
 
     val client: CordaRpcConnector
 
@@ -21,7 +22,7 @@ class CordaConnector(nodeAddress: NetworkHostAndPort,
             StateSnapshot.add(it)
         }
         thread {
-            CommunicationServer(communicationsPort)
+            CommunicationServer(communicationsPort,byzantine)
         }
 
         if (sendDummyData) {

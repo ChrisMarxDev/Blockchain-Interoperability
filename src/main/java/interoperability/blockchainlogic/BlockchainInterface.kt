@@ -4,10 +4,7 @@ import BLOCKCHAIN_B_ID
 import BLOCKCHAIN_B_SERVER_PORTS
 import BLOCKCHAIN_ORACLE
 import INTEROP_DATA_SERVER_PORTS
-import com.github.jtendermint.jabci.api.CodeType
-import com.github.jtendermint.jabci.api.ICheckTx
-import com.github.jtendermint.jabci.api.ICommit
-import com.github.jtendermint.jabci.api.IDeliverTx
+import com.github.jtendermint.jabci.api.*
 import com.github.jtendermint.jabci.socket.ExceptionListener
 import com.github.jtendermint.jabci.socket.TSocket
 import com.github.jtendermint.jabci.types.*
@@ -16,7 +13,9 @@ import extensions.*
 import general.Hash
 import general.Logger
 import general.MerkleTree
+import generated.interoperability.thrift.InteroperabilityTransaction
 import generated.interoperability.thrift.MessageType
+import generated.interoperability.thrift.OracleDataInterface
 import interoperability.blockchainlogic.validation.NonEmptyCollectionValidator
 import interoperability.blockchainlogic.validation.RequestResponseMappingValidation
 import interoperability.communications.IncomingRequestHandler
@@ -26,12 +25,17 @@ import interoperability.models.Address
 import interoperability.persistence.AddressHandler
 import interoperability.persistence.PersistanceHandler
 import interoperability.persistence.RequestCache
+import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.concurrent.thread
 
-class BlockchainInterface : IDeliverTx, ICheckTx, ICommit {
+class BlockchainInterface : IDeliverTx, ICheckTx, ICommit, IEndBlock {
 
-    var collectedBlockHashes = ArrayList<Hash>()
 
+    var collectedBlockHashes: SortedSet<Hash> = sortedSetOf()
+
+
+    val hanlder: OracleDataInterface.Iface
 
     init {
         val socket = TSocket({ socket, event, exception ->
@@ -57,9 +61,8 @@ class BlockchainInterface : IDeliverTx, ICheckTx, ICommit {
             Address("localhost", it)
         }))
 
-        IncomingRequestsServer(IncomingRequestHandler)
-
-
+        hanlder = IncomingRequestHandler()
+        IncomingRequestsServer(hanlder)
     }
 
     override fun requestCheckTx(requestCheckTx: RequestCheckTx?): ResponseCheckTx {
@@ -84,7 +87,7 @@ class BlockchainInterface : IDeliverTx, ICheckTx, ICommit {
             println("requested chain was " + wrapperTx.interoperabilityTransaction.dataRequest.requestedChain)
 
 
-            if (!RequestResponseMappingValidation.validate(interoperabilityTransaction)) {
+            if (!RequestResponseMappingValidation().validate(interoperabilityTransaction)) {
                 return ResponseCheckTx.newBuilder().setCode(CodeType.BAD)
                         .setLog("requestCheckTx does not match response").build()
             }
@@ -142,7 +145,7 @@ class BlockchainInterface : IDeliverTx, ICheckTx, ICommit {
             Logger.receiveData(interoperabilityTransaction.dataRequest.dataQuery, "Received deliver transaction query: ")
 
             //Handle validation
-            if (!RequestResponseMappingValidation.validate(interoperabilityTransaction)) {
+            if (!RequestResponseMappingValidation(false).validate(interoperabilityTransaction)) {
                 Logger.event(InternalAdressHandler.COMMUNICATION_SERVER_PORT.toString(), BLOCKCHAIN_ORACLE, false)
 
                 println("tx not valid")
@@ -151,7 +154,8 @@ class BlockchainInterface : IDeliverTx, ICheckTx, ICommit {
                         .setLog("requestDeliverTx does not match response").build()
             } else {
 
-                collectedBlockHashes.add(Hash(requestDeliverTx.tx.toByteArray()))
+                processAddingBlockHash(interoperabilityTransaction)
+//                collectedBlockHashes.add(Hash(requestDeliverTx.tx.toByteArray()))
 
                 println("writing transaction to chain:")
                 println("Requesting chain: " + interoperabilityTransaction.dataRequest.requestingChain)
@@ -193,13 +197,38 @@ class BlockchainInterface : IDeliverTx, ICheckTx, ICommit {
     }
 
 
-    override fun requestCommit(p0: RequestCommit?): ResponseCommit {
+    //Save all transactions from block
+    override fun requestEndBlock(endBlock: RequestEndBlock?): ResponseEndBlock {
+        endBlock?.height?.let { getAllTransactionsFromLastBlock(it.toInt()) }
+        return ResponseEndBlock.getDefaultInstance()
+    }
+
+    private fun getAllTransactionsFromLastBlock(height: Int) {
+        val latestBlock = BlockchainEndpointHanlder(InternalAdressHandler.BLOCKCHAIN_BROADCAST_PORT).getBlockAt(height)?.body
+        println(latestBlock)
+        val foundTransactions = BlockProcessing.processBlock(latestBlock)
+        foundTransactions.forEach { processAddingBlockHash(it) }
+
+    }
+
+
+    private fun handleDeclinedTransaction(interoperabilityTransaction: InteroperabilityTransaction) {
+
+    }
+
+    private fun processAddingBlockHash(interoperabilityTransaction: InteroperabilityTransaction) {
+        collectedBlockHashes.add(Hash(interoperabilityTransaction.toHexByteString().toByteArray()))
+    }
+
+
+    override fun requestCommit(requestCommit: RequestCommit?): ResponseCommit {
+
         if (collectedBlockHashes.size < 1) {
             return ResponseCommit.newBuilder().build()
         }
 
         val signature = if (collectedBlockHashes.size < 2) {
-            collectedBlockHashes[0].signature.toByteArray()
+            collectedBlockHashes.first().signature.toByteArray()
         } else {
 
             val merkleTree = MerkleTree(collectedBlockHashes.map { it.signature })

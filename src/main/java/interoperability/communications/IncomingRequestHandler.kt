@@ -10,7 +10,7 @@ import interoperability.blockchainlogic.validation.NonEmptyCollectionValidator
 import interoperability.persistence.AddressHandler
 import interoperability.persistence.PersistanceHandler
 
-object IncomingRequestHandler : OracleDataInterface.Iface {
+class IncomingRequestHandler : OracleDataInterface.Iface {
 
     override fun queryData(request: DataRequest?): DataResponse? {
 

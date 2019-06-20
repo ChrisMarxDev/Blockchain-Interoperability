@@ -1,6 +1,7 @@
 package interoperability.blockchainlogic
 
 import com.google.protobuf.ByteString
+import com.mashape.unirest.http.HttpResponse
 import extensions.*
 import general.Logger
 import generated.interoperability.thrift.*
@@ -45,6 +46,9 @@ object RequestLogicHandler {
     }
 
     fun getDataAndStartConsensus(request: DataRequest?): DataResponse? {
+
+        val endpoint = BlockchainEndpointHanlder(InternalAdressHandler.BLOCKCHAIN_BROADCAST_PORT)
+
         //request response from network
         val cachedByte = request?.let {
             RequestCache.getValue(it.requestedChain, it.dataQuery)
@@ -60,14 +64,20 @@ object RequestLogicHandler {
         val transaction = InteroperabilityTransaction(request, response)
 
         //broadcast transaction in blockchain for consensus
-        val broadcastTransactionResponse = BlockchainEndpointHanlder(InternalAdressHandler.BLOCKCHAIN_BROADCAST_PORT).broadcastTransaction(transaction)
+        var broadcastTransactionResponse: HttpResponse<String>?
+        try {
+            broadcastTransactionResponse = endpoint.broadcastTransaction(transaction)
+        } catch (e: Exception) {
+            broadcastTransactionResponse = null
+        }
 
         //TODO Wait for consensus
         println(broadcastTransactionResponse?.body)
 
-        val jsonObj = JSONObject(broadcastTransactionResponse?.body)
 
-        if (jsonObj.has("result")) {
+        val jsonObj = if (broadcastTransactionResponse != null) JSONObject(broadcastTransactionResponse?.body) else null
+
+        if (jsonObj != null && jsonObj.has("result")) {
             val jsonResult = jsonObj["result"] as JSONObject
 
             val deliver_tx = jsonResult["deliver_tx"] as JSONObject
@@ -87,7 +97,7 @@ object RequestLogicHandler {
                 val txHash = jsonResult["hash"] as String
                 println(txHash)
 
-                val pollTxResponse = BlockchainEndpointHanlder(InternalAdressHandler.BLOCKCHAIN_BROADCAST_PORT).getTxByHash(txHash)
+                val pollTxResponse = endpoint.getTxByHash(txHash)
                 println(pollTxResponse?.body)
 
                 val pollTxResponseJson = JSONObject(pollTxResponse?.body)
@@ -117,8 +127,10 @@ object RequestLogicHandler {
             }
         }
 
+        //process last block and get transaction from it
+        BlockProcessing.processBlock(endpoint.getLatestBlock()?.body)
 
         println("Error case, get data local as last resort")
-        return getDataLocal(request, true)
+        return getDataLocal(request, false)
     }
 }

@@ -5,8 +5,9 @@ import generated.interoperability.thrift.DataInterface
 import generated.interoperability.thrift.DataResponse
 import org.apache.thrift.server.TThreadPoolServer
 import org.apache.thrift.transport.TServerSocket
+import java.util.*
 
-class CommunicationServer(port: Int) {
+class CommunicationServer(port: Int, private val byzantine: Boolean = false) {
 
     init {
         startServer(port, handler = DataInterface.Iface {
@@ -15,6 +16,7 @@ class CommunicationServer(port: Int) {
             val id = it.dataQuery
 
             val price = StateSnapshot.getPrice(id)
+                    ?.plus(if (byzantine) Random().nextInt(50) else 0)
 
 
             val query = price?.toString()?.asByteBuffer()

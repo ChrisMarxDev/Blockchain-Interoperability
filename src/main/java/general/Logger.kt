@@ -9,7 +9,7 @@ import generated.visualization.thrift.VMessage
 import java.nio.ByteBuffer
 
 object Logger {
-    const val VISUALIZATION = true
+    const val VISUALIZATION = false
     const val LOGGING = true
 
     fun message(fromName: String, fromType: String, toName: String, toType: String, message: String) {

@@ -17,4 +17,5 @@ val DUMMY_PRODUCTS = mapOf<String, Double>(
         "Apples" to 1.0
 )
 
-val DUMMY_AMOUNT = 300;
+val DUMMY_AMOUNT = 500
+val TRANSACTION_AMOUNT = 1000

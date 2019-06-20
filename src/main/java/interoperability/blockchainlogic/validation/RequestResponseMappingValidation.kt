@@ -5,13 +5,13 @@ import generated.interoperability.thrift.InteroperabilityTransaction
 import interoperability.blockchainlogic.RequestLogicHandler
 import java.util.*
 
-object RequestResponseMappingValidation : IValidator<InteroperabilityTransaction> {
+class RequestResponseMappingValidation(val includeCache : Boolean = true) : IValidator<InteroperabilityTransaction> {
 
     //Does network call, needs to be suspended (cant mark function as suspended because of interface)
     override fun validate(transaction: InteroperabilityTransaction): Boolean {
 
         val individualResponse = RequestLogicHandler.getDataLocalOrRemote(transaction.dataRequest
-                ?: return false, true)
+                ?: return false, includeCache)
 
 
         val individualResponseData = individualResponse?.getResponseData()
