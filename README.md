@@ -55,8 +55,6 @@ Nachdem beide Knoten der Blockchain B gestartet wurden, kann der dritte Knoten i
 com.template.CordaStarterConfig3WithDummyData
 ```
 
-*TODO Script
-
 
 ## Entwicklerlog
 ### Geplannter Anwendungsverlauf:
@@ -106,10 +104,6 @@ Blockchain A validiert über Blockchain B ob die Verträge nach aktuellem Preis 
 #### Benötigte Schnittstellen:
   + Eingehende Datenanfragen
   + Gestellte Anfragen auf Daten
-  
-
-## TODO
-Adresshandler implementieren
 
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
