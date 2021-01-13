@@ -1,3 +1,6 @@
+![Tendermint](https://tendermint.com/core.svg)
+![Corda](https://www.corda.net/wp-content/themes/corda/assets/images/crda-logo-big.svg)
+
 # Interoperationsblockchain
 Installiere Go und setze die Umgebungsvariable [GOPATH](https://github.com/tendermint/tendermint/wiki/Setting-GOPATH)
 Installiere Tendermint [siehe](https://github.com/tendermint/tendermint/wiki/Installation) oder direkt mit 
